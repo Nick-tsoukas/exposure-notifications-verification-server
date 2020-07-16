@@ -31,10 +31,10 @@ resource "google_service_account_iam_member" "cloudbuild-deploy-adminapi" {
 
 resource "google_secret_manager_secret_iam_member" "adminapi-db" {
   for_each = toset([
-    "sslcert",
-    "sslkey",
-    "sslrootcert",
-    "password",
+    "sslcert2",
+    "sslkey2",
+    "sslrootcert2",
+    "password2",
   ])
 
   secret_id = google_secret_manager_secret.db-secret[each.key].id

@@ -94,10 +94,10 @@ resource "google_sql_user" "user" {
 
 resource "google_secret_manager_secret" "db-secret" {
   for_each = toset([
-    "sslcert",
-    "sslkey",
-    "sslrootcert",
-    "password",
+    "sslcert2",
+    "sslkey2",
+    "sslrootcert2",
+    "password2",
   ])
 
   secret_id = "db-${each.key}"
@@ -113,10 +113,10 @@ resource "google_secret_manager_secret" "db-secret" {
 
 resource "google_secret_manager_secret_version" "db-secret-version" {
   for_each = {
-    sslcert     = google_sql_ssl_cert.db-cert.cert
-    sslkey      = google_sql_ssl_cert.db-cert.private_key
-    sslrootcert = google_sql_ssl_cert.db-cert.server_ca_cert
-    password    = google_sql_user.user.password
+    sslcert2     = google_sql_ssl_cert.db-cert.cert
+    sslkey2      = google_sql_ssl_cert.db-cert.private_key
+    sslrootcert2 = google_sql_ssl_cert.db-cert.server_ca_cert
+    password2    = google_sql_user.user.password
   }
 
   secret      = google_secret_manager_secret.db-secret[each.key].id
@@ -193,7 +193,8 @@ resource "google_secret_manager_secret_version" "db-verification-code-hmac" {
 # Grant Cloud Build the ability to access the database secrets (required to run
 # migrations).
 resource "google_secret_manager_secret_iam_member" "cloudbuild-db-pwd" {
-  secret_id = google_secret_manager_secret.db-secret["password"].id
+  provider  = google-beta
+  secret_id = google_secret_manager_secret.db-secret["password2"].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
 
@@ -267,7 +268,7 @@ resource "null_resource" "migrate" {
       DB_DEBUG                          = true
       DB_ENCRYPTION_KEY                 = google_kms_crypto_key.database-encrypter.self_link
       DB_NAME                           = google_sql_database.db.name
-      DB_PASSWORD                       = "secret://${google_secret_manager_secret_version.db-secret-version["password"].id}"
+      DB_PASSWORD                       = "secret://${google_secret_manager_secret_version.db-secret-version["password2"].id}"
       DB_USER                           = google_sql_user.user.name
       DB_VERIFICATION_CODE_DATABASE_KEY = "secret://${google_secret_manager_secret_version.db-verification-code-hmac.id}"
       LOG_DEBUG                         = true
@@ -302,11 +303,11 @@ output "db_user" {
 }
 
 output "db_password" {
-  value = google_secret_manager_secret_version.db-secret-version["password"].name
+  value = google_secret_manager_secret_version.db-secret-version["password2"].name
 }
 
 output "migrate_command" {
-  value = "PROJECT_ID=\"${var.project}\" DB_CONN=\"${google_sql_database_instance.db-inst.connection_name}\" DB_ENCRYPTION_KEY=\"${google_kms_crypto_key.database-encrypter.self_link}\" DB_APIKEY_DATABASE_KEY=\"secret://${google_secret_manager_secret_version.db-apikey-db-hmac.id}\" DB_APIKEY_SIGNATURE_KEY=\"secret://${google_secret_manager_secret_version.db-apikey-sig-hmac.id}\" DB_VERIFICATION_CODE_DATABASE_KEY=\"secret://${google_secret_manager_secret_version.db-verification-code-hmac.id}\" DB_PASSWORD=\"secret://${google_secret_manager_secret_version.db-secret-version["password"].name}\" DB_NAME=\"${google_sql_database.db.name}\" DB_USER=\"${google_sql_user.user.name}\" DB_DEBUG=\"true\" LOG_DEBUG=\"true\" ./scripts/migrate"
+  value = "PROJECT_ID=\"${var.project}\" DB_CONN=\"${google_sql_database_instance.db-inst.connection_name}\" DB_ENCRYPTION_KEY=\"${google_kms_crypto_key.database-encrypter.self_link}\" DB_APIKEY_DATABASE_KEY=\"secret://${google_secret_manager_secret_version.db-apikey-db-hmac.id}\" DB_APIKEY_SIGNATURE_KEY=\"secret://${google_secret_manager_secret_version.db-apikey-sig-hmac.id}\" DB_VERIFICATION_CODE_DATABASE_KEY=\"secret://${google_secret_manager_secret_version.db-verification-code-hmac.id}\" DB_PASSWORD=\"secret://${google_secret_manager_secret_version.db-secret-version["password2"].name}\" DB_NAME=\"${google_sql_database.db.name}\" DB_USER=\"${google_sql_user.user.name}\" DB_DEBUG=\"true\" LOG_DEBUG=\"true\" ./scripts/migrate"
 }
 
 output "proxy_command" {
@@ -314,11 +315,11 @@ output "proxy_command" {
 }
 
 output "proxy_env" {
-  value = "DB_SSLMODE=disable DB_HOST=127.0.0.1 DB_NAME=${google_sql_database.db.name} DB_PORT=5432 DB_USER=${google_sql_user.user.name} DB_PASSWORD=$(gcloud secrets versions access ${google_secret_manager_secret_version.db-secret-version["password"].name})"
+  value = "DB_SSLMODE=disable DB_HOST=127.0.0.1 DB_NAME=${google_sql_database.db.name} DB_PORT=5432 DB_USER=${google_sql_user.user.name} DB_PASSWORD=$(gcloud secrets versions access ${google_secret_manager_secret_version.db-secret-version["password2"].name})"
 }
 
 output "psql_env" {
-  value = "PGHOST=127.0.0.1 PGPORT=5432 PGUSER=${google_sql_user.user.name} PGPASSWORD=$(gcloud secrets versions access ${google_secret_manager_secret_version.db-secret-version["password"].name})"
+  value = "PGHOST=127.0.0.1 PGPORT=5432 PGUSER=${google_sql_user.user.name} PGPASSWORD=$(gcloud secrets versions access ${google_secret_manager_secret_version.db-secret-version["password2"].name})"
 }
 
 output "db_encryption_key_secret" {

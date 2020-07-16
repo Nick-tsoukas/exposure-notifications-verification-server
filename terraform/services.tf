@@ -38,24 +38,26 @@ locals {
     DB_ENCRYPTION_KEY                 = google_kms_crypto_key.database-encrypter.self_link
     DB_HOST                           = google_sql_database_instance.db-inst.private_ip_address
     DB_NAME                           = google_sql_database.db.name
-    DB_PASSWORD                       = "secret://${google_secret_manager_secret_version.db-secret-version["password"].id}"
-    DB_SSLCERT                        = "secret://${google_secret_manager_secret_version.db-secret-version["sslcert"].id}?target=file"
-    DB_SSLKEY                         = "secret://${google_secret_manager_secret_version.db-secret-version["sslkey"].id}?target=file"
+    DB_PASSWORD                       = "secret://${google_secret_manager_secret_version.db-secret-version["password2"].id}"
+    DB_SSLCERT                        = "secret://${google_secret_manager_secret_version.db-secret-version["sslcert2"].id}?target=file"
+    DB_SSLKEY                         = "secret://${google_secret_manager_secret_version.db-secret-version["sslkey2"].id}?target=file"
     DB_SSLMODE                        = "verify-ca"
-    DB_SSLROOTCERT                    = "secret://${google_secret_manager_secret_version.db-secret-version["sslrootcert"].id}?target=file"
+    DB_SSLROOTCERT                    = "secret://${google_secret_manager_secret_version.db-secret-version["sslrootcert2"].id}?target=file"
     DB_USER                           = google_sql_user.user.name
     DB_VERIFICATION_CODE_DATABASE_KEY = "secret://${google_secret_manager_secret_version.db-verification-code-hmac.id}"
   }
 
   firebase_config = {
-    FIREBASE_API_KEY           = data.google_firebase_web_app_config.default.api_key
-    FIREBASE_APP_ID            = google_firebase_web_app.default.app_id
-    FIREBASE_AUTH_DOMAIN       = data.google_firebase_web_app_config.default.auth_domain
-    FIREBASE_DATABASE_URL      = lookup(data.google_firebase_web_app_config.default, "database_url")
-    FIREBASE_MEASUREMENT_ID    = lookup(data.google_firebase_web_app_config.default, "measurement_id")
-    FIREBASE_MESSAGE_SENDER_ID = lookup(data.google_firebase_web_app_config.default, "messaging_sender_id")
-    FIREBASE_PROJECT_ID        = google_firebase_web_app.default.project
-    FIREBASE_STORAGE_BUCKET    = lookup(data.google_firebase_web_app_config.default, "storage_bucket")
+    FIREBASE_API_KEY              = data.google_firebase_web_app_config.default.api_key
+    FIREBASE_APP_ID               = google_firebase_web_app.default.app_id
+    FIREBASE_AUTH_DOMAIN          = data.google_firebase_web_app_config.default.auth_domain
+    FIREBASE_DATABASE_URL         = lookup(data.google_firebase_web_app_config.default, "database_url")
+    FIREBASE_MEASUREMENT_ID       = lookup(data.google_firebase_web_app_config.default, "measurement_id")
+    FIREBASE_MESSAGE_SENDER_ID    = lookup(data.google_firebase_web_app_config.default, "messaging_sender_id")
+    FIREBASE_PROJECT_ID           = google_firebase_web_app.default.project
+    FIREBASE_STORAGE_BUCKET       = lookup(data.google_firebase_web_app_config.default, "storage_bucket")
+    FIREBASE_TERMS_OF_SERVICE_URL = "terms-of-service"
+    FIREBASE_PRIVACY_POLICY_URL   = "private-policy"
   }
 
   rate_limit_config = {

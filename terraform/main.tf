@@ -59,7 +59,7 @@ resource "google_project_service" "services" {
 }
 
 resource "google_compute_global_address" "private_ip_address" {
-  name          = "private-ip-address"
+  name          = "private-ip-address2"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 16
@@ -73,7 +73,7 @@ resource "google_compute_global_address" "private_ip_address" {
 resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = "projects/${var.project}/global/networks/default"
   service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
+  reserved_peering_ranges = ["private-ip-address", google_compute_global_address.private_ip_address.name]
 
   depends_on = [
     google_project_service.services["compute.googleapis.com"],
@@ -83,10 +83,10 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 
 resource "google_vpc_access_connector" "connector" {
   project        = var.project
-  name           = "serverless-vpc-connector"
+  name           = "serverless-vpc-connector2"
   region         = var.region
   network        = "default"
-  ip_cidr_range  = "10.8.0.0/28"
+  ip_cidr_range  = "10.18.0.0/28"
   max_throughput = var.vpc_access_connector_max_throughput
 
   depends_on = [
@@ -127,6 +127,7 @@ resource "google_project_iam_member" "cloudbuild-deploy" {
 #
 # If your project already has GAE enabled, run `terraform import google_app_engine_application.app $PROJECT_ID`
 resource "google_app_engine_application" "app" {
+  count       = 0
   project     = data.google_project.project.project_id
   location_id = var.appengine_location
 }
@@ -153,7 +154,7 @@ export DB_DEBUG="true"
 export DB_ENCRYPTION_KEY="${google_kms_crypto_key.database-encrypter.self_link}"
 export DB_HOST="127.0.0.1"
 export DB_NAME="${google_sql_database.db.name}"
-export DB_PASSWORD="secret://${google_secret_manager_secret_version.db-secret-version["password"].id}"
+export DB_PASSWORD="secret://${google_secret_manager_secret_version.db-secret-version["password2"].id}"
 export DB_PORT="5432"
 export DB_SSLMODE="disable"
 export DB_USER="${google_sql_user.user.name}"
@@ -169,8 +170,8 @@ export FIREBASE_PROJECT_ID="${google_firebase_web_app.default.project}"
 export FIREBASE_STORAGE_BUCKET="${data.google_firebase_web_app_config.default.storage_bucket}"
 
 export CACHE_TYPE="REDIS"
-export CACHE_REDIS_HOST="${google_redis_instance.cache.host}"
-export CACHE_REDIS_PORT="${google_redis_instance.cache.port}"
+export CACHE_CACHE_REDIS_HOST="${google_redis_instance.cache.host}"
+export CACHE_CACHE_REDIS_PORT="${google_redis_instance.cache.port}"
 
 export RATE_LIMIT_TYPE="REDIS"
 export RATE_LIMIT_TOKENS="60"
