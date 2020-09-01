@@ -1,4 +1,4 @@
-project = "covidtrace-reference"
+project = "covidtrace-nevada-staging"
 
 database_tier            = "db-custom-2-7680"
 database_disk_size_gb    = 16
